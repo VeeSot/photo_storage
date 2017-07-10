@@ -16,6 +16,13 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
+from catalogs.api import CatalogList, CatalogDetail
+
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+
+    url(r'^api/v1/catalogs/$', CatalogList.as_view()),
+    url(r'^api/v1/catalogs/(?P<pk>[0-9]+)/$', CatalogDetail.as_view()),
+
 ]
