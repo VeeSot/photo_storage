@@ -17,9 +17,10 @@ from django.conf.urls import url, include
 from django.contrib import admin
 
 from catalogs import urls as catalog_urls
-
+from photo import urls as photos_urls
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^api/v1/catalogs/', include(catalog_urls))
+    url(r'^api/v1/catalogs/', include(catalog_urls)),
+    url(r'^api/v1/photo/', include(photos_urls))
 ]
