@@ -5,8 +5,9 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from catalogs.models import Catalog
-from utils.common_services import CommonTestMethods
 from main.variables import api_path
+from photo.models import Photo
+from utils.common_services import CommonTestMethods
 
 
 @pytest.mark.django_db
@@ -72,3 +73,17 @@ class CatalogTestCase(APITestCase):
 
         self.assertEqual(req.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Catalog.objects.count(), 0, "Catalog not delete")
+
+    def test_photo_in_catalog(self):
+        catalog = Catalog.objects.create(name="Catalog")
+        catalog.save()
+
+        for idx in xrange(3):  # 3 photo
+            Photo.objects.create(name="Photo {}".format(idx), file="...", catalog=catalog)
+
+        url = CatalogTestCase.base_url + '{idx}/photos/'.format(idx=catalog.id)
+        req = self.client.get(url)
+
+        self.assertEqual(req.status_code, status.HTTP_200_OK)
+        json_response = json.loads(req.content.decode())
+        self.assertEqual(Photo.objects.count(), len(json_response), "Photos not found")

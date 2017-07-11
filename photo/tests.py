@@ -1,3 +1,4 @@
+import json
 import tempfile
 
 import pytest
@@ -42,6 +43,20 @@ class PhotoTestCase(APITestCase):
         self.assertEqual(Photo.objects.count(), 1)  # Only one photo
         self.assertEqual(Photo.objects.get(pk=1).name, data['name'])
         self.assertEqual(Photo.objects.get(pk=1).catalog_id, catalog.id)
+
+    def test_get_catalog(self):
+        catalog = Catalog.objects.create(name="Catalog")
+        catalog.save()
+
+        photo = Photo.objects.create(name="Photo", file="...", catalog=catalog)
+        photo.save()
+
+        url = PhotoTestCase.base_url + '{idx}/'.format(idx=catalog.id)
+        response = self.client.get(url)
+        json_response = json.loads(response.content.decode())
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(json_response.pop('name'), photo.name, "Photo name not correct")
 
     def test_delete_photo(self):
         catalog = Catalog.objects.create(name="Catalog")

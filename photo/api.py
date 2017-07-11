@@ -42,8 +42,8 @@ class PhotoDetail(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Gener
     # GET
 
     def get(self, request, *args, **kwargs):
-        catalog = self.retrieve(request, *args, **kwargs)
-        serializer = PhotoSerializer(catalog, context={'request': request})
+        photo = self.retrieve(request, *args, **kwargs)
+        serializer = PhotoSerializer(photo, context={'request': request})
         return JSONResponse(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
@@ -54,15 +54,15 @@ class PhotoDetail(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Gener
         # PUT
 
     def update(self, request, *args, **kwargs):
-        catalog = Photo.objects.get(id=kwargs.get('pk'))
+        photo = Photo.objects.get(id=kwargs.get('pk'))
         public_props = ['name']
 
         for name in public_props:
-            setattr(catalog, name, request.data.pop(name))
+            setattr(photo, name, request.data.pop(name))
 
-        catalog.save()
+        photo.save()
 
-        return catalog
+        return photo
 
     def put(self, request, *args, **kwargs):
         catalog = self.update(request, *args, **kwargs)

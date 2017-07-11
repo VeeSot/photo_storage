@@ -1,9 +1,12 @@
+from rest_framework.decorators import detail_route
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, \
+from rest_framework.mixins import ListModelMixin, \
     CreateModelMixin
 from rest_framework.serializers import HyperlinkedModelSerializer
+from rest_framework.viewsets import ModelViewSet
 
 from catalogs.models import Catalog
+from photo.api import PhotoSerializer
 from utils.functions import JSONResponse
 
 
@@ -30,21 +33,24 @@ class CatalogList(ListModelMixin, CreateModelMixin, GenericAPIView):
         return JSONResponse(serializer.data, status=201)
 
 
-class CatalogDetail(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericAPIView):
+class CatalogDetail(ModelViewSet):
+    lookup_value_regex = '[0-9]'
     queryset = Catalog.objects.all()
     serializer_class = CatalogSerializer
 
-    # GET
-
-    def get(self, request, *args, **kwargs):
-        catalog = self.retrieve(request, *args, **kwargs)
-        serializer = CatalogSerializer(catalog, context={'request': request})
-        return JSONResponse(serializer.data)
+    @detail_route(methods=['get'])
+    def photos(self, request, *args, **kwargs):
+        catalog = Catalog.objects.get(**kwargs)
+        photos = catalog.photo_set.all()
+        serializers = map(PhotoSerializer, photos)
+        return JSONResponse([serializer.data for serializer in serializers])
+        # PUT
 
     def retrieve(self, request, *args, **kwargs):
         idx = int(kwargs.get('pk'))
         catalog = Catalog.objects.get(id=idx)
-        return catalog
+        serializer = CatalogSerializer(catalog, context={'request': request})
+        return JSONResponse(serializer.data)
 
         # PUT
 
@@ -57,12 +63,12 @@ class CatalogDetail(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Gen
 
         catalog.save()
 
-        return catalog
+        serializer = CatalogSerializer(catalog)
+        return JSONResponse(serializer.data)
 
     def put(self, request, *args, **kwargs):
         catalog = self.update(request, *args, **kwargs)
-        serializer = CatalogSerializer(catalog)
-        return JSONResponse(serializer.data)
+
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
