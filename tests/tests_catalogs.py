@@ -18,17 +18,16 @@ class CatalogTestCase(APITestCase):
     def setUp(self):
         self.user = CommonTestMethods.create_superuser()
         self.client = CommonTestMethods.get_client_with_csrf_token()
+        self.catalog_name = 'Catalog'
 
     def test_create_catalog(self):
-        data = {"name": "Catalog"}
+        data = {"name": self.catalog_name}
         response = self.client.post(CatalogTestCase.base_url, json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Catalog.objects.count(), 1)  # Only one catalog
 
     def test_get_catalog(self):
-        catalog_name = 'Catalog'
-        catalog = Catalog.objects.create(name=catalog_name)
-        catalog.save()
+        catalog = Catalog.objects.create(name=self.catalog_name)
         idx = catalog.id
 
         url = CatalogTestCase.base_url + '{idx}/'.format(idx=idx)
@@ -36,11 +35,11 @@ class CatalogTestCase(APITestCase):
         json_response = json.loads(response.content.decode())  # JSON-rerp response
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(json_response.pop('name'), catalog_name, "Catalog name not correct")
+        self.assertEqual(json_response.pop('name'), self.catalog_name, "Catalog name not correct")
 
     def test_catalog_list(self):
-        Catalog.objects.create(name="Catalog1").save()
-        Catalog.objects.create(name="Catalog2").save()
+        Catalog.objects.create(name="Catalog1")
+        Catalog.objects.create(name="Catalog2")
         response = self.client.get(CatalogTestCase.base_url)
         json_response = json.loads(response.content.decode())
 
@@ -48,10 +47,8 @@ class CatalogTestCase(APITestCase):
         self.assertEqual(len(json_response), 2)  # We get 2 catalogs
 
     def test_update_catalog(self):
-        catalog_name = 'Catalog'
         new_catalog_name = 'New_Catalog'
-        catalog = Catalog.objects.create(name=catalog_name)
-        catalog.save()
+        catalog = Catalog.objects.create(name=self.catalog_name)
         idx = catalog.id
         url = CatalogTestCase.base_url + '{idx}/'.format(idx=idx)
 
@@ -64,8 +61,7 @@ class CatalogTestCase(APITestCase):
         self.assertEqual(json_response.get('name'), new_catalog_name)
 
     def test_delete_catalog(self):
-        catalog = Catalog.objects.create(name="Catalog")
-        catalog.save()
+        catalog = Catalog.objects.create(name=self.catalog_name)
         idx = catalog.id
 
         url = CatalogTestCase.base_url + '{idx}/'.format(idx=idx)
@@ -75,8 +71,7 @@ class CatalogTestCase(APITestCase):
         self.assertEqual(Catalog.objects.count(), 0, "Catalog not delete")
 
     def test_photo_in_catalog(self):
-        catalog = Catalog.objects.create(name="Catalog")
-        catalog.save()
+        catalog = Catalog.objects.create(name=self.catalog_name)
 
         for idx in xrange(3):  # 3 photo
             Photo.objects.create(name="Photo {}".format(idx), file="...", catalog=catalog)

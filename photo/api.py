@@ -1,10 +1,13 @@
 # coding=utf-8
+from rest_framework.decorators import detail_route
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, \
+from rest_framework.mixins import ListModelMixin, \
     CreateModelMixin
 from rest_framework.serializers import HyperlinkedModelSerializer
+from rest_framework.viewsets import ModelViewSet
 
 from photo.models import Photo
+from tasks.models import Task
 from utils.functions import JSONResponse
 
 
@@ -36,23 +39,17 @@ class PhotoList(ListModelMixin, CreateModelMixin, GenericAPIView):
         return JSONResponse(serializer.data, status=201)
 
 
-class PhotoDetail(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericAPIView):
+class PhotoDetail(ModelViewSet):
+    lookup_value_regex = '[0-9]'
     queryset = Photo.objects.all()
     serializer_class = PhotoSerializer
 
     # GET
-
-    def get(self, request, *args, **kwargs):
-        photo = self.retrieve(request, *args, **kwargs)
-        serializer = PhotoSerializer(photo, context={'request': request})
-        return JSONResponse(serializer.data)
-
     def retrieve(self, request, *args, **kwargs):
-        idx = int(kwargs.get('pk'))
-        catalog = Photo.objects.get(id=idx)
-        return catalog
-
-        # PUT
+        idx = kwargs.get('pk')
+        photo = Photo.objects.get(id=idx)
+        serializer = PhotoSerializer(photo)
+        return JSONResponse(serializer.data)
 
     def update(self, request, *args, **kwargs):
         photo = Photo.objects.get(id=kwargs.get('pk'))
@@ -73,3 +70,12 @@ class PhotoDetail(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Gener
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+    @detail_route(methods=['PATCH'])
+    def serve(self, request, *args, **kwargs):
+        """Выполняет абстрактныю задачу над фото"""
+        idx = kwargs.get('pk')
+        photo = Photo.objects.get(id=idx)
+        task = Task.objects.create(photo=photo)
+        task.serve()
+        return JSONResponse({'status': 'task running'}, status=202)

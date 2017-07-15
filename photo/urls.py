@@ -1,9 +1,13 @@
 from django.conf.urls import url
+from rest_framework import routers
 
 from photo.api import PhotoList, PhotoDetail
 
+router = routers.SimpleRouter()
+router.register(r'', PhotoDetail)
+
 urlpatterns = [
     url(r'^$', PhotoList.as_view()),
-    url(r'^(?P<pk>[0-9]+)/$', PhotoDetail.as_view()),
 
 ]
+urlpatterns += router.urls
