@@ -1,3 +1,4 @@
+# coding=utf-8
 from rest_framework.decorators import detail_route
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin, \
@@ -21,6 +22,7 @@ class CatalogList(ListModelMixin, CreateModelMixin, GenericAPIView):
     serializer_class = CatalogSerializer
 
     def get(self, request, *args, **kwargs):
+        """Получение списка каталогов"""
         return self.list(request, *args, **kwargs)
 
     def create(self, validated_data, **kwargs):
@@ -28,6 +30,7 @@ class CatalogList(ListModelMixin, CreateModelMixin, GenericAPIView):
         return catalog
 
     def post(self, request, *args, **kwargs):
+        """Создание каталога.Принимает параметр name для создания нового каталога"""
         catalog = self.create(request)
         serializer = CatalogSerializer(catalog)
         return JSONResponse(serializer.data, status=201)
@@ -40,21 +43,21 @@ class CatalogDetail(ModelViewSet):
 
     @detail_route(methods=['get'])
     def photos(self, request, *args, **kwargs):
+        """Возвращает информацию о картинках в каталоге"""
         catalog = Catalog.objects.get(**kwargs)
         photos = catalog.photo_set.all()
         serializers = map(PhotoSerializer, photos)
         return JSONResponse([serializer.data for serializer in serializers])
-        # PUT
 
     def retrieve(self, request, *args, **kwargs):
-        idx = int(kwargs.get('pk'))
+        """Получение информации по специфичному каталогу"""
+        idx = kwargs.get('pk')
         catalog = Catalog.objects.get(id=idx)
-        serializer = CatalogSerializer(catalog, context={'request': request})
+        serializer = CatalogSerializer(catalog)
         return JSONResponse(serializer.data)
 
-        # PUT
-
     def update(self, request, *args, **kwargs):
+        """Переименование каталога"""
         catalog = Catalog.objects.get(id=kwargs.get('pk'))
         public_props = ['name']
 
@@ -66,9 +69,6 @@ class CatalogDetail(ModelViewSet):
         serializer = CatalogSerializer(catalog)
         return JSONResponse(serializer.data)
 
-    def put(self, request, *args, **kwargs):
-        catalog = self.update(request, *args, **kwargs)
-
-
     def delete(self, request, *args, **kwargs):
+        """Удаление каталога"""
         return self.destroy(request, *args, **kwargs)

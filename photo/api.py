@@ -1,3 +1,4 @@
+# coding=utf-8
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, \
     CreateModelMixin
@@ -65,8 +66,9 @@ class PhotoDetail(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, Gener
         return photo
 
     def put(self, request, *args, **kwargs):
-        catalog = self.update(request, *args, **kwargs)
-        serializer = PhotoSerializer(catalog)
+        """Обновление фото"""
+        photo = self.update(request, *args, **kwargs)
+        serializer = PhotoSerializer(photo)
         return JSONResponse(serializer.data)
 
     def delete(self, request, *args, **kwargs):
